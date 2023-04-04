@@ -4,6 +4,10 @@ const router = express.Router()
 import { PDFDocument, StandardFonts, rgb } from 'pdf-lib';
 import fs from "fs";
 import serviceAccount from "../utils/serviceAccount.js";
+import { async } from "@firebase/util";
+
+import multer from "multer";
+import {getStorage, ref, getDownloadURL, uploadBytesResumable} from 'firebase/storage';
 // router.get("/:userId", async(req,res)=>{
 //     try {
 //         const userId = +req.params.userId || 0;
@@ -117,6 +121,35 @@ router.get("/test", async(req,res)=>{
     return res.status(200).json({
         message: "success"
     })
+})
+
+
+// Setting up multer as a middleware to grab photo uploads
+const upload = multer({ storage: multer.memoryStorage() });
+
+router.post('/upload', upload.single('file'), async(req, res) => {
+    if(!req.file) {
+        return res.status(400).send("Error: No files found")
+    } 
+
+    const bucket = serviceAccount.storage().bucket();
+    const blob = bucket.file('user/abYqBsQA8fgOMMnIO4N3iwwbztJ3/documents/Nhom.pdf')
+    
+    const blobWriter = blob.createWriteStream({
+        metadata: {
+            contentType: req.file.mimetype
+        }
+    })
+    
+    blobWriter.on('error', (err) => {
+        console.log(err)
+    })
+    
+    blobWriter.on('finish', () => {
+        res.status(200).send("File uploaded.")
+    })
+    
+    blobWriter.end(req.file.buffer)
 })
 
 export default router

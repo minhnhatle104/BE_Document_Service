@@ -16,4 +16,5 @@ const serviceAccount = admin.initializeApp({
     ),
     storageBucket: 'gs://signatext.appspot.com/'
 });
+
 export default serviceAccount
